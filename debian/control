@@ -1,0 +1,52 @@
+Source: libxcvt
+Priority: optional
+Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
+Uploaders: Timo Aaltonen <tjaalton@debian.org>
+Build-Depends: debhelper-compat (= 13),
+ meson,
+Standards-Version: 4.6.0
+Section: x11
+Vcs-Browser: https://salsa.debian.org/xorg-team/lib/libxcvt
+Vcs-Git: https://salsa.debian.org/xorg-team/lib/libxcvt.git
+Rules-Requires-Root: no
+
+Package: libxcvt-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: libxcvt0 (= ${binary:Version}), ${misc:Depends}
+Description: VESA CVT standard timing modelines generator -- development files
+ libxcvt is a library providing a standalone version of the X server
+ implementation of the VESA CVT standard timing modelines generator.
+ .
+ This package includes files for development.
+
+Package: libxcvt0
+Section: libs
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: VESA CVT standard timing modelines generator -- shared library
+ libxcvt is a library providing a standalone version of the X server
+ implementation of the VESA CVT standard timing modelines generator.
+ .
+ This package includes the shared library.
+
+Package: libxcvt0-udeb
+XC-Package-Type: udeb
+Section: debian-installer
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: VESA CVT standard timing modelines generator -- udeb
+ This is a udeb, or a microdeb, for the debian-installer.
+
+Package: xcvt
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Breaks: xserver-xorg-core (<< 2:21.0.99.1~)
+Replaces: xserver-xorg-core (<< 2:21.0.99.1~)
+Description: VESA CVT standard timing modelines generator
+ libxcvt is a library providing a standalone version of the X server
+ implementation of the VESA CVT standard timing modelines generator.
+ .
+ This package includes the commandline tool 'cvt'.

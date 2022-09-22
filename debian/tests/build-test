@@ -1,0 +1,80 @@
+#!/bin/sh
+set -eu
+
+if [ -n "${DEB_HOST_GNU_TYPE:-}" ]; then
+    CROSS_COMPILE="$DEB_HOST_GNU_TYPE-"
+else
+    CROSS_COMPILE=
+fi
+
+cd "$AUTOPKGTEST_TMP"
+
+# stolen from cvt/cvt.c
+# Copyright 2005-2006 Luc Verhaegen.
+cat <<EOF > libtest.c
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#include <libxcvt/libxcvt.h>
+
+/*
+ * Originally grabbed from xf86Mode.c.
+ *
+ * Ignoring the actual mode_info->name, as the user will want something solid
+ * to grab hold of.
+ */
+static void
+print_mode_line(struct libxcvt_mode_info *mode_info, int hdisplay, int vdisplay, float vrefresh,
+              bool reduced)
+{
+    if (reduced)
+        printf("Modeline \"%dx%dR\"  ", hdisplay, vdisplay);
+    else
+        printf("Modeline \"%dx%d_%.2f\"  ", hdisplay, vdisplay, vrefresh);
+
+    printf("%6.2f  %i %i %i %i  %i %i %i %i", mode_info->dot_clock / 1000.,
+           mode_info->hdisplay, mode_info->hsync_start, mode_info->hsync_end, mode_info->htotal,
+           mode_info->vdisplay, mode_info->vsync_start, mode_info->vsync_end, mode_info->vtotal);
+
+    if (mode_info->mode_flags & LIBXCVT_MODE_FLAG_INTERLACE)
+        printf(" interlace");
+    if (mode_info->mode_flags & LIBXCVT_MODE_FLAG_HSYNC_POSITIVE)
+        printf(" +hsync");
+    if (mode_info->mode_flags & LIBXCVT_MODE_FLAG_HSYNC_NEGATIVE)
+        printf(" -hsync");
+    if (mode_info->mode_flags & LIBXCVT_MODE_FLAG_VSYNC_POSITIVE)
+        printf(" +vsync");
+    if (mode_info->mode_flags & LIBXCVT_MODE_FLAG_VSYNC_NEGATIVE)
+        printf(" -vsync");
+
+    printf("\n");
+}
+
+int
+main (int argc, char *argv[])
+{
+    struct libxcvt_mode_info *mode_info;
+    int hdisplay = 1024, vdisplay = 768;
+    float vrefresh = 60.0;
+    bool reduced = false, verbose = false;
+    bool interlaced = false;
+
+    mode_info = libxcvt_gen_mode_info(hdisplay, vdisplay, vrefresh, reduced, interlaced);
+    if (!mode_info) {
+        fprintf(stderr, "Out of memory!\n");
+            return 0;
+    }
+    print_mode_line(mode_info, hdisplay, vdisplay, vrefresh, reduced);
+    free(mode_info);
+
+    return 0;
+}
+EOF
+
+${CROSS_COMPILE}gcc -o libtest libtest.c $(${CROSS_COMPILE}pkg-config --cflags --libs libxcvt)
+echo "build ok"
+[ -x libtest ]
+./libtest
+echo "starts ok"
